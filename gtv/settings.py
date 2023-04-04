@@ -92,5 +92,5 @@ MYSQL_HOST = 'localhost'
 MYSQL_PORT = 3306
 MYSQL_USER = 'root'
 MYSQL_PWD = '12345678'
-MYSQL_DB = 'gtv'
+MYSQL_DB = 'lsp_gtv'
 MYSQL_CHAR = 'utf8'

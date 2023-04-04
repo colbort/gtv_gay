@@ -52,7 +52,7 @@ class GtvPipeline(object):
             self.cursor.execute(sql)
             self.db.commit()
         finally:
-            print(self.cursor._last_executed)
+            print("1111111111111111111111111111")
         return item
 
     def _video_item(self, item: GtvVideoItem):
@@ -74,8 +74,6 @@ class GtvPipeline(object):
             self.cursor.execute(_sql)
             self.db.commit()
         except pymysql.MySQLError as _:
-            print('11111111111111111111111111111111111111')
-            print(self.cursor._last_executed)
             print('11111111111111111111111111111111111111')
         finally:
             pass
