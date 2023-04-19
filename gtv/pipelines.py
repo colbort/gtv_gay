@@ -56,26 +56,51 @@ class GtvPipeline(object):
         return item
 
     def _video_item(self, item: GtvVideoItem):
-        _select = 'select * from videos where href="%s"' % item['href']
+        last_id = self._save_video_item(item)
+        self._save_video_detail_item(item)
+        if last_id is -1:
+            return
+        self._save_c_v_index(last_id, item['category'])
+
+    def _save_video_item(self, item: GtvVideoItem) -> int:
+        _select = 'select * from t_videos where href="%s"' % item['href']
         self.cursor.execute(_select)
         _exist = self.cursor.fetchone()
         _temp = ''
         if _exist is not None:
-            _temp = 'update videos set `url`="%s", `title`="%s", `cover`="%s", `image`="%s",' \
-                   ' `date`="%s", `views`=%d, `comments`=%d, `category`="%s", `recommend`="%s" where `href`="%s"'
+            _temp = 'update t_videos set `title`="%s", `cover`="%s", `image`="%s",' \
+                    ' `date`="%s", `views`=%d, `comments`=%d, `category`="%s" where `href`="%s"'
         else:
-            _temp = 'insert into videos (`url`, `title`, `cover`, `image`, `date`, `views`, `comments`, ' \
-                   '`category`, `recommend`, `href`) values ("%s", "%s", "%s", "%s", "%s", %d, %d, ' \
-                   '"%s", "%s", "%s")'
-        _sql = _temp % (item['url'], item["title"], item['cover'], item['image'], item['date'], item['views'],
-                        item['comments'], item['category'].replace('"', '\\"'),
-                        item['recommend'].replace('"', '\\"').replace("'", ''), item['href'])
+            _temp = 'insert into t_videos (`title`, `cover`, `image`, `date`, `views`, `comments`, ' \
+                    '`category`, `href`) values ("%s", "%s", "%s", "%s", %d, %d, ' \
+                    '"%s", "%s")'
+        _sql = _temp % (item["title"], item['cover'], item['image'], item['date'], item['views'],
+                        item['comments'], item['category'].replace('"', '\\"'), item['href'])
         try:
             self.cursor.execute(_sql)
             self.db.commit()
         except pymysql.MySQLError as _:
-            print('11111111111111111111111111111111111111')
-        finally:
-            pass
+            print("保存视频基本信息失败 %s" % item['href'])
+            return -1
+        return self.cursor.lastrowid
 
-        return item
+    def _save_video_detail_item(self, item: GtvVideoItem):
+        _select = 'select * from t_videos_detail where href="%s"' % item['href']
+        self.cursor.execute(_select)
+        _exist = self.cursor.fetchone()
+        _temp = ''
+        if _exist is not None:
+            _temp = 'update t_videos_detail set `url`="%s", `recommend`="%s" where `href`="%s"'
+        else:
+            _temp = 'insert into t_videos_detail (`url`, `recommend`, `href`) values ("%s", "%s", "%s")'
+        _sql = _temp % (item['url'], item['recommend'].replace('"', '\\"').replace("'", ''), item['href'])
+        try:
+            self.cursor.execute(_sql)
+            self.db.commit()
+        except pymysql.MySQLError as _:
+            print("保存视频详细信息失败 %s" % item['href'])
+
+    def _save_c_v_index(self, vid, categories):
+        cats = categories.split(',')
+        for cate in cats:
+            print(cate)
