@@ -1,6 +1,6 @@
 /*
 SQLyog Community v13.1.7 (64 bit)
-MySQL - 8.0.32 : Database - gtv
+MySQL - 8.0.32 : Database - old_gtv
 *********************************************************************
 */
 

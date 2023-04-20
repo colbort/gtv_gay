@@ -5,17 +5,17 @@
 # Don't forget to add your pipeline to the ITEM_PIPELINES setting
 # See: https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 import pymysql
-from zhconv import convert
+from scrapy.crawler import CrawlerProcess
 
 from .items import *
 from .settings import *
+from .spiders.videos import GtvVideosSpider
 
 
 class GtvPipeline(object):
     def __init__(self):
         self.db = None
         self.cursor = None
-        self.categories = []
 
     def open_spider(self, spider):
         # 爬虫程序启动时，只执行一次，一般用于建立数据库连接
@@ -28,7 +28,6 @@ class GtvPipeline(object):
             charset=MYSQL_CHAR
         )
         self.cursor = self.db.cursor()
-        self._load_categories()
 
     def process_item(self, item, spider):
         if type(item) is GtvCateItem:
@@ -41,37 +40,35 @@ class GtvPipeline(object):
         self.db.close()
 
     def _cate_item(self, item):
-        _select = 'select * from t_categories where zh_tw=%s'
+        _select = 'select * from cates where title=%s'
+        _sql = 'insert into cates (`href`, `count`, `title`) values ("%s", %d, "%s")' % (
+            item["href"], item['count'], item["title"])
         try:
-            self.cursor.execute(_select, [item['zh_tw']])
+            self.cursor.execute(_select, [item['title']])
             one = self.cursor.fetchone()
             if one is not None:
-                _sql = 'update t_categories set `href`="%s", `count`=%d, `zh_cn`="%s" where `zh_tw`="%s"' % (
-                    item["href"], item['count'], item['zh_cn'], item["zh_tw"])
-            else:
-                _sql = 'insert into t_categories (`href`, `count`, `zh_tw`, `zh_cn`) values ("%s", %d, "%s", "%s")' % (
-                    item["href"], item['count'], item["zh_tw"], item["zh_cn"])
+                _sql = 'update cates set `href`="%s", `count`=%d where `title`="%s"' % (
+                    item["href"], item['count'], item["title"])
             self.cursor.execute(_sql)
             self.db.commit()
         except pymysql.MySQLError as _:
             print('11111111111111111111111111111111111111')
-            print(_sql)
+            print(self.cursor._last_executed)
             print('11111111111111111111111111111111111111')
         finally:
             pass
         return item
 
     def _video_item(self, item: GtvVideoItem):
-        _select = 'select * from t_videos where href="%s"' % item['href']
+        _select = 'select * from videos where href="%s"' % item['href']
         self.cursor.execute(_select)
         _exist = self.cursor.fetchone()
         _temp = ''
-        _vid = -1
         if _exist is not None:
-            _temp = 'update t_videos set `url`="%s", `title`="%s", `cover`="%s", `image`="%s",' \
+            _temp = 'update videos set `url`="%s", `title`="%s", `cover`="%s", `image`="%s",' \
                     ' `date`="%s", `views`=%d, `comments`=%d, `category`="%s", `recommend`="%s" where `href`="%s"'
         else:
-            _temp = 'insert into t_videos (`url`, `title`, `cover`, `image`, `date`, `views`, `comments`, ' \
+            _temp = 'insert into videos (`url`, `title`, `cover`, `image`, `date`, `views`, `comments`, ' \
                     '`category`, `recommend`, `href`) values ("%s", "%s", "%s", "%s", "%s", %d, %d, ' \
                     '"%s", "%s", "%s")'
         _sql = _temp % (item['url'], item["title"], item['cover'], item['image'], item['date'], item['views'],
@@ -79,7 +76,6 @@ class GtvPipeline(object):
                         item['recommend'].replace('"', '\\"').replace("'", ''), item['href'])
         try:
             self.cursor.execute(_sql)
-            _vid = int(self.cursor.lastrowid)
             self.db.commit()
         except pymysql.MySQLError as _:
             print('11111111111111111111111111111111111111')
@@ -88,41 +84,13 @@ class GtvPipeline(object):
         finally:
             pass
 
-        if _vid != -1:
-            self._insert_index_to_c_v(item['categories'], _vid)
+        for e in item['categories']:
+            print(e)
 
         return item
 
     def _get_category_by_name(self, title: str):
         _sql = 'select * from cates where `title` == %s' % title
-        try:
-            self.cursor.execute(_sql)
-            self.db.commit()
-        except pymysql.MySQLError as _:
-            print(_sql)
-        finally:
-            pass
-
-    def _load_categories(self):
-        _select = 'select * from `cates`'
-        self.cursor.execute(_select)
-        rows = self.cursor.fetchall()
-        for row in rows:
-            self.categories.append(CategoryItem(row))
-
-    def _get_id_by_zh_cn(self, zh_cn: str):
-        for e in self.categories:
-            if e.zh_cn == convert(zh_cn, 'zh-hans'):
-                return e.id
-        return 1000000
-
-    def _insert_index_to_c_v(self, categories: [], vid: int):
-        _sql = 'insert into `t_index_c_v` (`cid`, `vid`) values %s'
-        _values = []
-        for e in categories:
-            _cid = self._get_id_by_zh_cn(e.replace("#", ""))
-            _values.append("(%d, %d)" % (_cid, vid))
-        _sql = _sql % (",".join(_values))
         try:
             self.cursor.execute(_sql)
             self.db.commit()

@@ -1,17 +1,20 @@
 import json
 
+import js2py
+import js2xml
 import pymysql
 import scrapy
+from lxml import etree
 
-from gtv.items import GtvVideoItem
-from gtv.settings import *
+from old_gtv.items import GtvVideoItem
+from old_gtv.settings import *
 
 
 class GtvVideosSpider(scrapy.Spider):
     name = 'videos'
     allowed_domains = ['danlanshipin.gay/old_gtv']
-    base_url = "https://www.xlsp.fun"
-    # start_urls = ['https://www.xlsp.fun/gtv/cate/%E5%85%B5%E5%93%A5%E5%93%A5']
+    base_url = "https://dlsp.gay"
+    # start_urls = ['https://dlsp.gay/gtv/cate/%E6%A0%A1%E5%9B%AD']
     start_urls = []
 
     def __init__(self):
@@ -25,19 +28,16 @@ class GtvVideosSpider(scrapy.Spider):
         )
         self.cursor = self.db.cursor()
         try:
-            select = "select * from t_categories"
+            select = "select * from cates"
             self.cursor.execute(select)
             rows = self.cursor.fetchall()
             for row in rows:
-                self.start_urls.append('%s%s' % (self.base_url, row[3]))
+                self.start_urls.append('%s%s' % (self.base_url, row[2]))
         except Exception as e:
             print(e)
         pass
 
     def parse(self, response: scrapy.http.HtmlResponse):
-        if response.status != 200:
-            print(response.body)
-            return
         try:
             nodes = response.xpath('//*[@id="app"]/div[2]/div[2]/div')
             for node in nodes:
