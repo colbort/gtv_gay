@@ -57,8 +57,7 @@ class GtvVideosSpider(scrapy.Spider):
         except Exception as e:
             print('数据解析出错：' + response.url + "**********" + e)
 
-    @staticmethod
-    def _detail(response: scrapy.http.HtmlResponse):
+    def _detail(self, response: scrapy.http.HtmlResponse):
         item = response.meta["item"]
         info = response.xpath('//*[@id="app"]/div[2]/div[1]/div/div[1]/div/div[@class="text-sm"]/div')
 
@@ -87,15 +86,15 @@ class GtvVideosSpider(scrapy.Spider):
         recs = response.xpath('//*[@id="app"]/div[2]/div[2][@class="w-full"]/div')
         recommend = []
         for it in recs.xpath('div'):
-            recommend.append(_parse_item(it))
-        # item['recommend'] = json.dumps(recommend, default=lambda o: o.__dict__, ensure_ascii=False).strip()
-        json_str = json.dumps(recommend, default=lambda o: o.__dict__, ensure_ascii=False).strip()
-        arrays = json.loads(json_str)
-        objects = []
-        for e in arrays:
-            objects.append(e['_values'])
-        item['recommend'] = json.dumps(objects)
-
+            _item = _parse_item(it)
+            exist = self._get_video_detail(_item['href'])
+            if exist:
+                print('视频详情已存在 = %s' % _item['href'])
+            else:
+                detail = '%s%s' % (self.base_url, _item['href'])
+                yield scrapy.Request(url=detail, meta={"item": _item}, callback=self._detail, dont_filter=True)
+            recommend.append(_item)
+        item['recommend'] = json.dumps(recommend, default=lambda o: o.__dict__, ensure_ascii=False).strip()
         js = response.xpath('//*[@id="app"]/div[2]/div[1]/div[1]/div/div[1]/div[1]/script/text()').get().split('\n')
         for row in js:
             try:

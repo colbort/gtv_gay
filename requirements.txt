@@ -50,3 +50,5 @@ urllib3==1.26.15
 w3lib==2.1.1
 you-get==0.4.1650
 zope.interface==6.0
+
+zhconv~=1.4.3
