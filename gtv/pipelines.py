@@ -62,18 +62,17 @@ class GtvPipeline(object):
         return item
 
     def _video_item(self, item: GtvVideoItem):
-        last_id = self._save_video_item(item)
+        _save = self._save_video_item(item)
         self._save_video_detail_item(item)
-        if last_id is -1:
-            return
-        self._insert_index_to_c_v(item['categories'], last_id)
+        if _save:
+            self._insert_index_to_c_v(item['categories'], item['href'])
 
-    def _save_video_item(self, item: GtvVideoItem) -> int:
+    def _save_video_item(self, item: GtvVideoItem) -> bool:
         _select = 'select * from t_videos where href="%s"' % item['href']
         self.cursor.execute(_select)
         _exist = self.cursor.fetchone()
         _temp = ''
-        _vid = -1
+        _save = False
         if _exist is not None:
             _temp = 'update t_videos set `title`="%s", `cover`="%s", `image`="%s",' \
                     ' `date`="%s", `views`=%d, `comments`=%d, `category`="%s" where `href`="%s"'
@@ -81,15 +80,15 @@ class GtvPipeline(object):
             _temp = 'insert into t_videos (`title`, `cover`, `image`, `date`, `views`, `comments`, ' \
                     '`category`, `href`) values ("%s", "%s", "%s", "%s", %d, %d, ' \
                     '"%s", "%s")'
+            _save = True
         _sql = _temp % (item["title"], item['cover'], item['image'], item['date'], item['views'],
                         item['comments'], item['category'].replace('"', '\\"'), item['href'])
         try:
             self.cursor.execute(_sql)
-            _vid = int(self.cursor.lastrowid)
             self.db.commit()
         except pymysql.MySQLError as _:
-            return -1
-        return _vid
+            return False
+        return _save
 
     def _save_video_detail_item(self, item: GtvVideoItem):
         _select = 'select * from t_videos_detail where href="%s"' % item['href']
@@ -120,12 +119,12 @@ class GtvPipeline(object):
                 return e.id
         return 1000000
 
-    def _insert_index_to_c_v(self, categories: [], vid: int):
-        _sql = 'insert into `t_index_c_v` (`cid`, `vid`) values %s'
+    def _insert_index_to_c_v(self, categories: [], href: str):
+        _sql = 'insert into `t_index_c_v` (`cid`, `href`) values %s'
         _values = []
         for e in categories:
             _cid = self._get_id_by_zh_cn(e.replace("#", ""))
-            _values.append("(%d, %d)" % (_cid, vid))
+            _values.append("(%d, %s)" % (_cid, href))
         _sql = _sql % (",".join(_values))
         try:
             self.cursor.execute(_sql)
