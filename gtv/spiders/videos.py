@@ -116,7 +116,7 @@ class GtvVideosSpider(scrapy.Spider):
 
     def _get_video_detail(self, href):
         try:
-            select = "select * from videos where href=%s"
+            select = "select * from t_videos where href=%s"
             self.cursor.execute(select, href)
             row = self.cursor.fetchone()
             if row is not None:

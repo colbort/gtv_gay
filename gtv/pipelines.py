@@ -108,7 +108,7 @@ class GtvPipeline(object):
             print("保存视频详细信息失败 %s" % item['href'])
 
     def _load_categories(self):
-        _select = 'select * from `cates`'
+        _select = 'select * from `t_categories`'
         self.cursor.execute(_select)
         rows = self.cursor.fetchall()
         for row in rows:
