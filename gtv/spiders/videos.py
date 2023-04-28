@@ -36,7 +36,7 @@ class GtvVideosSpider(scrapy.Spider):
 
     def parse(self, response: scrapy.http.HtmlResponse):
         if response.status != 200:
-            print(response.body)
+            print("请求失败：", response.status)
             return
         try:
             nodes = response.xpath('//*[@id="app"]/div[2]/div[2]/div')
@@ -93,7 +93,7 @@ class GtvVideosSpider(scrapy.Spider):
             else:
                 detail = '%s%s' % (self.base_url, _item['href'])
                 yield scrapy.Request(url=detail, meta={"item": _item}, callback=self._detail, dont_filter=True)
-            recommend.append(_item)
+            recommend.append(dict(_item))
         item['recommend'] = json.dumps(recommend, default=lambda o: o.__dict__, ensure_ascii=False).strip()
         js = response.xpath('//*[@id="app"]/div[2]/div[1]/div[1]/div/div[1]/div[1]/script/text()').get().split('\n')
         for row in js:
@@ -101,17 +101,13 @@ class GtvVideosSpider(scrapy.Spider):
                 if row.index('window.video_url = ') >= 0:
                     item['url'] = row.replace('window.video_url = ', '').replace(';', '').replace('"', '').strip()
             except ValueError as _:
-                # print(row)
                 continue
         for row in js:
             try:
                 if row.index('window.video_cover = ') >= 0:
-                    # print(row)
                     item['cover'] = row.replace('window.video_cover = ', '').replace(';', '').replace("'", '').strip()
             except ValueError as _:
-                # print(row)
                 continue
-        # print(item)
         yield item
 
     def _get_video_detail(self, href):

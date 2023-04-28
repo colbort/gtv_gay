@@ -54,11 +54,7 @@ class GtvPipeline(object):
             self.cursor.execute(_sql)
             self.db.commit()
         except pymysql.MySQLError as _:
-            print('11111111111111111111111111111111111111')
             print(_sql)
-            print('11111111111111111111111111111111111111')
-        finally:
-            print("1111111111111111111111111111")
         return item
 
     def _video_item(self, item: GtvVideoItem):
@@ -124,7 +120,7 @@ class GtvPipeline(object):
         _values = []
         for e in categories:
             _cid = self._get_id_by_zh_cn(e.replace("#", ""))
-            _values.append("(%d, %s)" % (_cid, href))
+            _values.append('(%d, "%s")' % (_cid, href))
         _sql = _sql % (",".join(_values))
         try:
             self.cursor.execute(_sql)

@@ -36,7 +36,7 @@ class GtvVideosSpider(scrapy.Spider):
 
     def parse(self, response: scrapy.http.HtmlResponse):
         if response.status != 200:
-            print(response.body)
+            print("请求错误：", response.status)
             return
         try:
             js = response.xpath('//*[@id="app"]/div[2]/div[1]/div[1]/div/div[1]/div[1]/script/text()').get().split('\n')
@@ -46,7 +46,6 @@ class GtvVideosSpider(scrapy.Spider):
                         _url = row.replace('window.video_url = ', '').replace(';', '').replace('"', '').strip()
                         print(_url)
                 except ValueError as _:
-                    # print(row)
                     continue
         except Exception as e:
             print('数据解析出错：' + response.url + "**********" + e)

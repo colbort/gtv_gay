@@ -63,9 +63,9 @@ ROBOTSTXT_OBEY = True
 
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
-# ITEM_PIPELINES = {
-#     'gtv.pipelines.GtvPipeline': 300,
-# }
+ITEM_PIPELINES = {
+    'gtv.pipelines.GtvPipeline': 300,
+}
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://docs.scrapy.org/en/latest/topics/autothrottle.html
@@ -91,6 +91,6 @@ ROBOTSTXT_OBEY = True
 MYSQL_HOST = 'localhost'
 MYSQL_PORT = 3306
 MYSQL_USER = 'root'
-MYSQL_PWD = 'f1mS2OvRMb'
+MYSQL_PWD = '12345678'
 MYSQL_DB = 'video'
 MYSQL_CHAR = 'utf8'
