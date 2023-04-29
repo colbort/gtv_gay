@@ -1,9 +1,7 @@
-import json
-
+# -*- coding: utf-8 -*-
 import pymysql
 import scrapy
 
-from gtv.items import GtvVideoItem, HalfItem
 from gtv.settings import *
 
 

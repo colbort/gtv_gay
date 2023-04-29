@@ -116,14 +116,14 @@ class GtvPipeline(object):
         return 1000000
 
     def _insert_index_to_c_v(self, categories: [], href: str):
-        _sql = 'insert into `t_index_c_v` (`cid`, `href`) values %s'
+        _sql = 'insert into `t_index_c_v` (`cid`, `href`) values (%d, "%s")'
         _values = []
         for e in categories:
             _cid = self._get_id_by_zh_cn(e.replace("#", ""))
-            _values.append('(%d, "%s")' % (_cid, href))
-        _sql = _sql % (",".join(_values))
-        try:
-            self.cursor.execute(_sql)
-            self.db.commit()
-        except pymysql.MySQLError as _:
-            print(_sql)
+            _insert = _sql % (_cid, href)
+            try:
+                self.cursor.execute(_insert)
+                self.db.commit()
+            except pymysql.MySQLError as _:
+                print(_insert)
+
