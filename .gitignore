@@ -1,3 +1,5 @@
 venv/
 .idea/
 gtv_docker/data/
+gtv/__pycache__/
+gtv/spiders/__pycache__/
