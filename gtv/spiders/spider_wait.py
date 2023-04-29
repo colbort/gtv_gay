@@ -24,8 +24,8 @@ class SpiderWaitSpider(scrapy.Spider):
             charset=MYSQL_CHAR
         )
         self.cursor = self.db.cursor()
+        _select = 'select `href`, `image`, `title`, `date` from `t_videos_wait_spider` where `wait` = 1'
         try:
-            _select = 'select `href`, `image`, `title`, `date` from `t_videos_wait_spider`'
             self.cursor.execute(_select)
             rows = self.cursor.fetchall()
             for row in rows:
@@ -38,12 +38,12 @@ class SpiderWaitSpider(scrapy.Spider):
                 _url = self.base_url + row[0]
                 self.start_urls.append(_url)
         except Exception as e:
-            print(e)
+            print("获取未爬取视频错误: ", e)
         pass
 
     def parse(self, response):
         if response.status != 200:
-            print("请求失败：", response.status)
+            print("请求失败：%d  %s" % (response.status, response.url))
             return
         _href = response.url.replace(self.base_url, "")
         _item = self.items[_href]
@@ -51,7 +51,17 @@ class SpiderWaitSpider(scrapy.Spider):
             return
         item = parse_detail(response, _item, self.cursor, self.base_url, self.parse, self._get_video_detail,
                             self._create_spider)
+        self._update_status(_href)
         yield item
+
+    def _update_status(self, href: str):
+        _update = "update `t_videos_wait_spider` set `wait` = %d where `href` = '%s'" % (0, href)
+        try:
+            self.cursor.execute(_update)
+            self.db.commit()
+        except Exception as e:
+            print("更新未爬取视频状态错误: ", e)
+        pass
 
     @staticmethod
     def _get_video_detail(_, __):

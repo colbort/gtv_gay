@@ -54,7 +54,7 @@ class GtvPipeline(object):
             self.cursor.execute(_sql)
             self.db.commit()
         except pymysql.MySQLError as _:
-            print(_sql)
+            print("保存视频分类失败：" % _sql)
         return item
 
     def _video_item(self, item: GtvVideoItem):
@@ -125,5 +125,5 @@ class GtvPipeline(object):
                 self.cursor.execute(_insert)
                 self.db.commit()
             except pymysql.MySQLError as _:
-                print(_insert)
+                print("插入index_c_v错误：" + _insert)
 

@@ -45,12 +45,12 @@ class GtvVideosSpider(scrapy.Spider):
             for row in rows:
                 self.start_urls.append('%s%s' % (self.base_url, row[3]))
         except Exception as e:
-            print(e)
+            print("获取视频分类错误: ", e)
         pass
 
     def parse(self, response: scrapy.http.HtmlResponse):
         if response.status != 200:
-            print("请求失败：", response.status)
+            print("请求失败：%d  %s" % (response.status, response.url))
             return
         try:
             nodes = response.xpath('//*[@id="app"]/div[2]/div[2]/div')
