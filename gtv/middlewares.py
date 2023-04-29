@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
-
 # Define here the models for your spider middleware
 #
 # See documentation in:
 # https://docs.scrapy.org/en/latest/topics/spider-middleware.html
-
+from fake_useragent import UserAgent
 from scrapy import signals
 
 
@@ -69,16 +68,8 @@ class GtvDownloaderMiddleware(object):
         return s
 
     def process_request(self, request, spider):
-        # Called for each request that goes through the downloader
-        # middleware.
-
-        # Must either:
-        # - return None: continue processing this request
-        # - or return a Response object
-        # - or return a Request object
-        # - or raise IgnoreRequest: process_exception() methods of
-        #   installed downloader middleware will be called
-        return None
+        ua = UserAgent()
+        request.headers['User-Agent'] = ua.random
 
     def process_response(self, request, response, spider):
         # Called with the response returned from the downloader.
