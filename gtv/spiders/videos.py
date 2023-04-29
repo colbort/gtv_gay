@@ -58,9 +58,7 @@ class GtvVideosSpider(scrapy.Spider):
                 item = parse_item(node)
                 detail = '%s%s' % (self.base_url, item['href'])
                 exist = _get_video_detail(self.cursor, item['href'])
-                if exist:
-                    print('视频详情已存在 = %s' % item['href'])
-                else:
+                if exist is False:
                     yield scrapy.Request(url=detail, meta={"item": item}, callback=self._detail, dont_filter=True)
             try:
                 url = response.xpath('//*[@id="app"]/div[2]/div[3]/nav/div/div[2]/span/a[@rel="next"]/@href').get()
@@ -78,8 +76,6 @@ class GtvVideosSpider(scrapy.Spider):
 
     @staticmethod
     def _create_spider(exist, base_url: str, detail, item: GtvVideoItem):
-        if exist:
-            print('视频详情已存在 = %s' % item['href'])
-        else:
+        if exist is False:
             _url = '%s%s' % (base_url, item['href'])
             yield scrapy.Request(url=_url, meta={"item": item}, callback=detail, dont_filter=True)

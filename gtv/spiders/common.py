@@ -46,9 +46,7 @@ def parse_detail(response: scrapy.http.HtmlResponse, item: GtvVideoItem, cursor,
     for it in recs.xpath('div'):
         _item = parse_item(it)
         exist = get_video_detail(cursor, _item['href'])
-        if exist:
-            print('视频详情已存在 = %s' % _item['href'])
-        else:
+        if exist is False:
             scrapy_request(exist, base_url, detail, _item)
         recommend.append(dict(_item))
     item['recommend'] = json.dumps(recommend, default=lambda o: o.__dict__, ensure_ascii=False).strip()
