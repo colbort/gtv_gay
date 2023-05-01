@@ -72,6 +72,7 @@ class GtvPipeline(object):
         try:
             self.cursor.execute(_select)
             _exist = self.cursor.fetchone()
+            self.db.commit()
         except pymysql.MySQLError as _:
             print("从 t_videos 获取数据失败：", _select)
             return False
@@ -99,6 +100,7 @@ class GtvPipeline(object):
         try:
             self.cursor.execute(_select)
             _exist = self.cursor.fetchone()
+            self.db.commit()
         except pymysql.MySQLError as _:
             print("从 t_videos_detail 获取数据失败：", _select)
             return
@@ -118,6 +120,7 @@ class GtvPipeline(object):
         _select = 'select * from `t_categories`'
         self.cursor.execute(_select)
         rows = self.cursor.fetchall()
+        self.db.commit()
         for row in rows:
             self.categories.append(CategoryItem(row))
         print("获取视频分类成功：", len(self.categories))
@@ -139,4 +142,3 @@ class GtvPipeline(object):
                 self.db.commit()
             except pymysql.MySQLError as _:
                 print("插入index_c_v错误：" + _insert)
-
