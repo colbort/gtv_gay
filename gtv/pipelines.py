@@ -18,6 +18,9 @@ class GtvPipeline(object):
         self.categories = []
 
     def open_spider(self, spider):
+        print("*********************************************************************")
+        print("启动爬虫")
+        print("*********************************************************************")
         # 爬虫程序启动时，只执行一次，一般用于建立数据库连接
         self.db = pymysql.connect(
             host=MYSQL_HOST,
