@@ -117,6 +117,7 @@ class GtvPipeline(object):
         rows = self.cursor.fetchall()
         for row in rows:
             self.categories.append(CategoryItem(row))
+        print("获取视频分类成功：", len(self.categories))
 
     def _get_id_by_zh_cn(self, zh_cn: str):
         for e in self.categories:
