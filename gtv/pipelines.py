@@ -65,11 +65,12 @@ class GtvPipeline(object):
 
     def _save_video_item(self, item: GtvVideoItem) -> bool:
         _select = 'select * from t_videos where href="%s"' % item['href']
+        _exist = None
         try:
             self.cursor.execute(_select)
             _exist = self.cursor.fetchone()
         except pymysql.MySQLError as _:
-            print("根据href获取数据失败")
+            print("根据href获取数据失败：", _select)
             return False
         _temp = ''
         _save = False
