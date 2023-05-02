@@ -17,8 +17,8 @@ class SpiderWaitSpider(scrapy.Spider):
     start_urls = []
     items = {}
     page = 0
-    size = 1000
-    sql = 'select `recommend` from `t_videos_detail` where `wait` is null limit %d, %d'
+    size = 30
+    sql = 'select `recommend` from `t_videos_detail` where `wait` = 0 limit %d, %d'
 
     def __init__(self):
         self.db = pymysql.connect(
@@ -37,19 +37,22 @@ class SpiderWaitSpider(scrapy.Spider):
             print("请求失败：%d  %s" % (response.status, response.url))
             return
         _href = response.url.replace(self.base_url, "")
-        _item = self.items[_href]
-        if len(self.items) < 20:
-            sleep(2)
-            self.page = self.page + 1
-            self._get_data()
-            print('获取新数据 %d' % len(self.items))
-            sleep(2)
-        if _item is None:
-            return
-        item = parse_detail(response, _item, self.cursor, self.base_url, self.parse, self._get_video_detail,
-                            self._create_spider)
-        self._update_status(_href)
-        yield item
+        try:
+            _item = self.items.pop(_href)
+            if len(self.items) < 50:
+                sleep(2)
+                self.page = self.page + 1
+                self._get_data()
+                print('获取新数据 %d' % len(self.items))
+                sleep(2)
+            if _item is None:
+                return
+            item = parse_detail(response, _item, self.cursor, self.base_url, self.parse, self._get_video_detail,
+                                self._create_spider)
+            self._update_status(_href)
+            yield item
+        except Exception as e:
+            print(e)
 
     def _update_status(self, href: str):
         _update = "update `t_videos_detail` set `wait` = %d where `href` = '%s'" % (1, href)
@@ -69,13 +72,22 @@ class SpiderWaitSpider(scrapy.Spider):
                 _jsons = json.loads(row[0])
                 for _j in _jsons:
                     _item = GtvVideoItem()
-                    _item["href"] = _j["href"]
+                    _href = _j["href"]
+                    _item["href"] = _href
                     _item["image"] = _j["image"]
                     _item["title"] = _j["title"]
                     _item["date"] = _j["date"]
-                    self.items[_item["href"]] = _item
-                    _url = self.base_url + _item["href"]
-                    self.start_urls.append(_url)
+                    _exist = False
+                    try:
+                        _temp = self.items[_href]
+                        if _temp is not None:
+                            _exist = True
+                    except KeyError as e:
+                        print("123232312323")
+                    if _exist is not True:
+                        self.items[_href] = _item
+                        _url = self.base_url + _href
+                        self.start_urls.append(_url)
         except Exception as e:
             print("获取未爬取视频错误: ", e)
 
