@@ -41,16 +41,17 @@ class GtvVideosSpider(scrapy.Spider):
         )
         self.cursor = self.db.cursor()
         try:
-            select = "select * from t_categories"
+            select = "select * from t_pages"
             self.cursor.execute(select)
             rows = self.cursor.fetchall()
             for row in rows:
-                self.start_urls.append('%s%s' % (self.base_url, row[3]))
+                self.start_urls.append(row[1])
         except Exception as e:
             print("获取视频分类错误: ", e)
         pass
 
     def parse(self, response: scrapy.http.HtmlResponse):
+        self._update_page_status(response.url, response.status)
         if response.status != 200:
             print("请求失败：%d  %s" % (response.status, response.url))
             return
@@ -62,20 +63,24 @@ class GtvVideosSpider(scrapy.Spider):
                 exist = _get_video_detail(self.cursor, item['href'])
                 if exist is False:
                     yield scrapy.Request(url=detail, meta={"item": item}, callback=self._detail, dont_filter=True)
-            try:
-                _url = response.xpath('//*[@id="app"]/div[2]/div[3]/nav/div/div[2]/span/a[@rel="next"]/@href').get()
-                if _url is not None:
-                    print("翻页 %s" % urllib.parse.unquote(_url, 'utf-8'))
-                    yield scrapy.Request(_url, callback=self.parse, dont_filter=True)
-            except Exception as e:
-                print('下载完成：' + e + response.url)
         except Exception as e:
             print('数据解析出错：' + response.url + "**********" + e)
 
     def _detail(self, response: scrapy.http.HtmlResponse):
+        if response.status != 200:
+            print("请求失败：%d  %s" % (response.status, response.url))
+            return
         item = parse_detail(response, response.meta["item"], self.cursor, self.base_url, self._detail,
                             _get_video_detail, self._create_spider)
         yield item
+
+    def _update_page_status(self, url: str, status: int):
+        _update = 'update `t_pages` set `status` = %d where `url` = "%s"' % (status, url)
+        try:
+            self.cursor.execute(_update)
+            self.db.commit()
+        except pymysql.MySQLError as _:
+            print("更新页面状态错误")
 
     @staticmethod
     def _create_spider(exist, base_url: str, detail, item: GtvVideoItem):
