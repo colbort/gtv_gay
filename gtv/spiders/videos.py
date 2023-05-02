@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+import urllib
+
 import pymysql
 import scrapy
 
@@ -61,9 +63,10 @@ class GtvVideosSpider(scrapy.Spider):
                 if exist is False:
                     yield scrapy.Request(url=detail, meta={"item": item}, callback=self._detail, dont_filter=True)
             try:
-                url = response.xpath('//*[@id="app"]/div[2]/div[3]/nav/div/div[2]/span/a[@rel="next"]/@href').get()
-                if url is not None:
-                    yield scrapy.Request(url, callback=self.parse, dont_filter=True)
+                _url = response.xpath('//*[@id="app"]/div[2]/div[3]/nav/div/div[2]/span/a[@rel="next"]/@href').get()
+                if _url is not None:
+                    print("翻页 %s" % urllib.parse.unquote(_url, 'utf-8'))
+                    yield scrapy.Request(_url, callback=self.parse, dont_filter=True)
             except Exception as e:
                 print('下载完成：' + e + response.url)
         except Exception as e:
