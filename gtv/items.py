@@ -38,7 +38,7 @@ class CategoryItem(object):
     count = 0
 
     def __init__(self, data: tuple):
-        if len(data) != 5:
+        if len(data) != 6:
             return
         else:
             self.id = data[0]

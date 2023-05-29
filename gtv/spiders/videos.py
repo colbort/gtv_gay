@@ -3,6 +3,7 @@ import urllib
 
 import pymysql
 import scrapy
+from lxml import etree
 
 from gtv.items import GtvVideoItem
 from gtv.settings import *
@@ -41,7 +42,7 @@ class GtvVideosSpider(scrapy.Spider):
         )
         self.cursor = self.db.cursor()
         try:
-            select = "select * from t_pages"
+            select = "select * from t_pages where `status` != 200"
             self.cursor.execute(select)
             rows = self.cursor.fetchall()
             for row in rows:
@@ -56,7 +57,7 @@ class GtvVideosSpider(scrapy.Spider):
             print("请求失败：%d  %s" % (response.status, response.url))
             return
         try:
-            nodes = response.xpath('//*[@id="app"]/div[2]/div[2]/div')
+            nodes = response.xpath('//*[@id="app"]/div[2]/div[1]')
             for node in nodes:
                 item = parse_item(node)
                 detail = '%s%s' % (self.base_url, item['href'])

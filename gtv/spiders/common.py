@@ -28,8 +28,7 @@ def parse_detail(response: scrapy.http.HtmlResponse, item: GtvVideoItem, cursor,
                 item['views'] = int(it.xpath('span/text()').get())
             elif label == ' 評論: ':
                 item['comments'] = int(it.xpath('span/text()').get())
-        cats = response.xpath('//*[@id="app"]/div[2]/div[1]/div/div[1]/div[@class="p-2 my-2 '
-                              'border border-indigo-400 border-dashed"]')
+        cats = response.xpath('//*[@id="app"]/div[1]/div[1]/div/div[3]')
         category = []
         for cate in cats:
             label = cate.xpath('span/text()').get()
@@ -42,7 +41,8 @@ def parse_detail(response: scrapy.http.HtmlResponse, item: GtvVideoItem, cursor,
         item['category'] = json.dumps(category, ensure_ascii=False)
         item['categories'] = category
 
-        recs = response.xpath('//*[@id="app"]/div[2]/div[2][@class="w-full"]/div')
+        recs = response.xpath('//*[@id="app"]/div[2]/div')
+        ss = recs.get()
         recommend = []
         for it in recs.xpath('div'):
             _item = parse_item(it)
@@ -52,11 +52,13 @@ def parse_detail(response: scrapy.http.HtmlResponse, item: GtvVideoItem, cursor,
             #     scrapy_request(exist, base_url, detail, _item)
             recommend.append(dict(_item))
         item['recommend'] = json.dumps(recommend, default=lambda o: o.__dict__, ensure_ascii=False).strip()
-        js = response.xpath('//*[@id="app"]/div[2]/div[1]/div[1]/div/div[1]/div[1]/script/text()').get().split('\n')
+        # js = response.xpath('//*[@id="app"]/div[2]').get()
+        js = response.xpath('//*[@id="app"]/div[1]/div[1]/div/div[1]/div[1]/script/text()').get().split('\n')
         for row in js:
             try:
                 if row.index('window.video_url = ') >= 0:
-                    item['url'] = row.replace('window.video_url = ', '').replace(';', '').replace('"', '').strip()
+                    url = row.strip().replace('window.video_url = ', '').replace(';', '').replace('"', '')
+                    item['url'] = url
             except ValueError as _:
                 continue
         for row in js:

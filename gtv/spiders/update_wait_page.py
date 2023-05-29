@@ -40,8 +40,8 @@ class UpdateWaitPageSpider(scrapy.Spider):
             self._update_categories(_url)
             return
         try:
-            _strSize = response.xpath('//*[@id="app"]/div[2]/div[3]/nav/div/div[1]/p/span[2]/text()').get()
-            _strTotal = response.xpath('//*[@id="app"]/div[2]/div[3]/nav/div/div[1]/p/span[3]/text()').get()
+            _strSize = response.xpath('//*[@id="app"]/div[3]/nav/div/div[1]/p/span[2]/text()').get()
+            _strTotal = response.xpath('//*[@id="app"]/div[3]/nav/div/div[1]/p/span[3]/text()').get()
             self._insert_page(_url)
             if _strSize is None or _strTotal is None:
                 print("不翻页：%s" % _url)

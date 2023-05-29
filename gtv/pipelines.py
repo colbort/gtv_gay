@@ -86,8 +86,8 @@ class GtvPipeline(object):
                     '`category`, `href`) values ("%s", "%s", "%s", "%s", %d, %d, ' \
                     '"%s", "%s")'
             _save = True
-        _sql = _temp % (item["title"], item['cover'], item['image'], item['date'], item['views'],
-                        item['comments'], item['category'].replace('"', '\\"'), item['href'])
+        _sql = _temp % (item["title"], item['cover'], item['image'], item['date'], 0,
+                        0, item['category'].replace('"', '\\"'), item['href'])
         try:
             self.cursor.execute(_sql)
             self.db.commit()
