@@ -65,9 +65,7 @@ class UpdateCVTable(object):
 if __name__ == "__main__":
     # ReadCategories()
     # UpdateCVTable()
-    # 添加当前项目的绝对地址
     sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-    # 执行 scrapy 内置的函数方法execute，  使用 crawl 爬取并调试，最后一个参数jobbole 是我的爬虫文件名
     # execute(['scrapy', 'crawl', 'update_wait_page'])
     # execute(['scrapy', 'crawl', 'videos'])
     execute(['scrapy', 'crawl', 'videos'])
